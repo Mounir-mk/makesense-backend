@@ -1,10 +1,36 @@
 const express = require("express");
 const path = require("path");
+const cors = require("cors");
+require("dotenv").config();
 
 const router = express.Router();
 
 // serve the uploads folder for uploaded resources
 router.use(express.static(path.join(__dirname, "../uploads")));
+
+router.options("*", cors());
+
+// use some application-level middlewares
+let allowedOrigins = ["http://localhost:3000"];
+
+if (process.env.NODE_ENV === "production") {
+  allowedOrigins = [process.env.FRONTEND_URL];
+}
+
+router.use(
+  cors({
+    // eslint-disable-next-line object-shorthand, func-names
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg =
+          "La politique CORS ne permet pas l'accès à cette ressource pour cette origine spécifique.";
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+  })
+);
 
 // prefix all routes with /api
 router.use("/api", router);
