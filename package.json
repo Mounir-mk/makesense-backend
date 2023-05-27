@@ -1,6 +1,9 @@
 {
   "name": "mvc-express",
   "version": "1.0.0",
+  "engines": {
+    "node": "16.x"
+  },
   "description": "",
   "main": "index.js",
   "prisma": {
@@ -11,9 +14,12 @@
     "seed": "npx prisma db seed",
     "migrate": "npx prisma db push --force-reset",
     "studio": "npx prisma studio",
-    "start": "npx prisma db push --force-reset && npx prisma db seed && node index.js",
     "lint": "echo '----- Checking Backend...' && npx prettier --debug-check . && eslint --ext .js . && echo '----- Done!'",
-    "fix": "prettier --write . && eslint --fix --ext .js ."
+    "fix": "prettier --write . && eslint --fix --ext .js .",
+    "dokku": {
+      "postdeploy": "npm run migrate && npm run seed"
+    },
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "",
