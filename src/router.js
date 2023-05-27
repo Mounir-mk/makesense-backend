@@ -32,7 +32,7 @@ router.options("*", cors());
 //   })
 // );
 
-router.user(cors({ origin: "*" }));
+router.use(cors({ origin: "*" }));
 
 // prefix all routes with /api
 router.use("/api", router);
