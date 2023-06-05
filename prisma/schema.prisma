@@ -33,21 +33,21 @@ model concerned {
 }
 
 model decision {
-  id              Int             @id @default(autoincrement()) @db.UnsignedInt
-  title           String          @db.VarChar(150)
-  deadline        DateTime        @db.Date
-  publish_date    DateTime        @default(dbgenerated("(curdate())")) @db.Date
-  start_content   String          @db.Text
-  impact          String          @db.Text
-  risk            String          @db.Text
-  advantage       String          @db.Text
-  middle_decision String?         @db.Text
-  final_decision  String?         @db.Text
-  user_id         Int             @db.UnsignedInt
-  status          decision_status @default(in_progress)
+  id              Int         @id @default(autoincrement()) @db.UnsignedInt
+  title           String      @db.VarChar(150)
+  deadline        DateTime    @db.Date
+  publish_date    DateTime    @default(dbgenerated("(curdate())")) @db.Date
+  start_content   String      @db.Text
+  impact          String      @db.Text
+  risk            String      @db.Text
+  advantage       String      @db.Text
+  middle_decision String?     @db.Text
+  final_decision  String?     @db.Text
+  user_id         Int         @db.UnsignedInt
+  status          String      @default("in_progress") @db.VarChar(15)
   comment         comment[]
   concerned       concerned[]
-  user            user            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "decision_user")
+  user            user        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "decision_user")
 
   @@index([user_id], map: "decision_user")
 }
@@ -63,22 +63,446 @@ model user {
   comment         comment[]
   concerned       concerned[]
   decision        decision[]
-  RefreshToken    RefreshToken?
+  refreshtoken    refreshtoken?
 }
 
-model RefreshToken {
+model directus_activity {
+  id                 Int                  @id @default(autoincrement()) @db.UnsignedInt
+  action             String               @db.VarChar(45)
+  user               String?              @db.Char(36)
+  timestamp          DateTime             @default(now()) @db.Timestamp(0)
+  ip                 String?              @db.VarChar(50)
+  user_agent         String?              @db.VarChar(255)
+  collection         String               @db.VarChar(64)
+  item               String               @db.VarChar(255)
+  comment            String?              @db.Text
+  origin             String?              @db.VarChar(255)
+  directus_revisions directus_revisions[]
+
+  @@index([collection], map: "directus_activity_collection_foreign")
+}
+
+model directus_collections {
+  collection                 String                 @id @db.VarChar(64)
+  icon                       String?                @db.VarChar(30)
+  note                       String?                @db.Text
+  display_template           String?                @db.VarChar(255)
+  hidden                     Boolean                @default(false)
+  singleton                  Boolean                @default(false)
+  translations               Json?
+  archive_field              String?                @db.VarChar(64)
+  archive_app_filter         Boolean                @default(true)
+  archive_value              String?                @db.VarChar(255)
+  unarchive_value            String?                @db.VarChar(255)
+  sort_field                 String?                @db.VarChar(64)
+  accountability             String?                @default("all") @db.VarChar(255)
+  color                      String?                @db.VarChar(255)
+  item_duplication_fields    Json?
+  sort                       Int?
+  group                      String?                @db.VarChar(64)
+  collapse                   String                 @default("open") @db.VarChar(255)
+  preview_url                String?                @db.VarChar(255)
+  directus_collections       directus_collections?  @relation("directus_collectionsTodirectus_collections", fields: [group], references: [collection], onDelete: NoAction, onUpdate: NoAction, map: "directus_collections_group_foreign")
+  other_directus_collections directus_collections[] @relation("directus_collectionsTodirectus_collections")
+  directus_shares            directus_shares[]
+
+  @@index([group], map: "directus_collections_group_foreign")
+}
+
+model directus_dashboards {
+  id              String            @id @db.Char(36)
+  name            String            @db.VarChar(255)
+  icon            String            @default("dashboard") @db.VarChar(30)
+  note            String?           @db.Text
+  date_created    DateTime?         @default(now()) @db.Timestamp(0)
+  user_created    String?           @db.Char(36)
+  color           String?           @db.VarChar(255)
+  directus_users  directus_users?   @relation(fields: [user_created], references: [id], onUpdate: NoAction, map: "directus_dashboards_user_created_foreign")
+  directus_panels directus_panels[]
+
+  @@index([user_created], map: "directus_dashboards_user_created_foreign")
+}
+
+model directus_fields {
+  id                 Int      @id @default(autoincrement()) @db.UnsignedInt
+  collection         String   @db.VarChar(64)
+  field              String   @db.VarChar(64)
+  special            String?  @db.VarChar(64)
+  interface          String?  @db.VarChar(64)
+  options            Json?
+  display            String?  @db.VarChar(64)
+  display_options    Json?
+  readonly           Boolean  @default(false)
+  hidden             Boolean  @default(false)
+  sort               Int?     @db.UnsignedInt
+  width              String?  @default("full") @db.VarChar(30)
+  translations       Json?
+  note               String?  @db.Text
+  conditions         Json?
+  required           Boolean? @default(false)
+  group              String?  @db.VarChar(64)
+  validation         Json?
+  validation_message String?  @db.Text
+
+  @@index([collection], map: "directus_fields_collection_foreign")
+}
+
+model directus_files {
+  id                                                                    String              @id @db.Char(36)
+  storage                                                               String              @db.VarChar(255)
+  filename_disk                                                         String?             @db.VarChar(255)
+  filename_download                                                     String              @db.VarChar(255)
+  title                                                                 String?             @db.VarChar(255)
+  type                                                                  String?             @db.VarChar(255)
+  folder                                                                String?             @db.Char(36)
+  uploaded_by                                                           String?             @db.Char(36)
+  uploaded_on                                                           DateTime            @default(now()) @db.Timestamp(0)
+  modified_by                                                           String?             @db.Char(36)
+  modified_on                                                           DateTime            @default(now()) @db.Timestamp(0)
+  charset                                                               String?             @db.VarChar(50)
+  filesize                                                              BigInt?
+  width                                                                 Int?                @db.UnsignedInt
+  height                                                                Int?                @db.UnsignedInt
+  duration                                                              Int?                @db.UnsignedInt
+  embed                                                                 String?             @db.VarChar(200)
+  description                                                           String?             @db.Text
+  location                                                              String?             @db.Text
+  tags                                                                  String?             @db.Text
+  metadata                                                              Json?
+  directus_folders                                                      directus_folders?   @relation(fields: [folder], references: [id], onUpdate: NoAction, map: "directus_files_folder_foreign")
+  directus_users_directus_files_modified_byTodirectus_users             directus_users?     @relation("directus_files_modified_byTodirectus_users", fields: [modified_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "directus_files_modified_by_foreign")
+  directus_users_directus_files_uploaded_byTodirectus_users             directus_users?     @relation("directus_files_uploaded_byTodirectus_users", fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "directus_files_uploaded_by_foreign")
+  directus_settings_directus_settings_project_logoTodirectus_files      directus_settings[] @relation("directus_settings_project_logoTodirectus_files")
+  directus_settings_directus_settings_public_backgroundTodirectus_files directus_settings[] @relation("directus_settings_public_backgroundTodirectus_files")
+  directus_settings_directus_settings_public_foregroundTodirectus_files directus_settings[] @relation("directus_settings_public_foregroundTodirectus_files")
+
+  @@index([folder], map: "directus_files_folder_foreign")
+  @@index([modified_by], map: "directus_files_modified_by_foreign")
+  @@index([uploaded_by], map: "directus_files_uploaded_by_foreign")
+}
+
+model directus_flows {
+  id                  String                @id @db.Char(36)
+  name                String                @db.VarChar(255)
+  icon                String?               @db.VarChar(30)
+  color               String?               @db.VarChar(255)
+  description         String?               @db.Text
+  status              String                @default("active") @db.VarChar(255)
+  trigger             String?               @db.VarChar(255)
+  accountability      String?               @default("all") @db.VarChar(255)
+  options             Json?
+  operation           String?               @unique(map: "directus_flows_operation_unique") @db.Char(36)
+  date_created        DateTime?             @default(now()) @db.Timestamp(0)
+  user_created        String?               @db.Char(36)
+  directus_users      directus_users?       @relation(fields: [user_created], references: [id], onUpdate: NoAction, map: "directus_flows_user_created_foreign")
+  directus_operations directus_operations[]
+
+  @@index([user_created], map: "directus_flows_user_created_foreign")
+}
+
+model directus_folders {
+  id                     String              @id @db.Char(36)
+  name                   String              @db.VarChar(255)
+  parent                 String?             @db.Char(36)
+  directus_files         directus_files[]
+  directus_folders       directus_folders?   @relation("directus_foldersTodirectus_folders", fields: [parent], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "directus_folders_parent_foreign")
+  other_directus_folders directus_folders[]  @relation("directus_foldersTodirectus_folders")
+  directus_settings      directus_settings[]
+
+  @@index([parent], map: "directus_folders_parent_foreign")
+}
+
+model directus_migrations {
+  version   String    @id @db.VarChar(255)
+  name      String    @db.VarChar(255)
+  timestamp DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model directus_notifications {
+  id                                                              Int             @id @default(autoincrement()) @db.UnsignedInt
+  timestamp                                                       DateTime?       @default(now()) @db.Timestamp(0)
+  status                                                          String?         @default("inbox") @db.VarChar(255)
+  recipient                                                       String          @db.Char(36)
+  sender                                                          String?         @db.Char(36)
+  subject                                                         String          @db.VarChar(255)
+  message                                                         String?         @db.Text
+  collection                                                      String?         @db.VarChar(64)
+  item                                                            String?         @db.VarChar(255)
+  directus_users_directus_notifications_recipientTodirectus_users directus_users  @relation("directus_notifications_recipientTodirectus_users", fields: [recipient], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "directus_notifications_recipient_foreign")
+  directus_users_directus_notifications_senderTodirectus_users    directus_users? @relation("directus_notifications_senderTodirectus_users", fields: [sender], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "directus_notifications_sender_foreign")
+
+  @@index([recipient], map: "directus_notifications_recipient_foreign")
+  @@index([sender], map: "directus_notifications_sender_foreign")
+}
+
+model directus_operations {
+  id                                                                         String               @id @db.Char(36)
+  name                                                                       String?              @db.VarChar(255)
+  key                                                                        String               @db.VarChar(255)
+  type                                                                       String               @db.VarChar(255)
+  position_x                                                                 Int
+  position_y                                                                 Int
+  options                                                                    Json?
+  resolve                                                                    String?              @unique(map: "directus_operations_resolve_unique") @db.Char(36)
+  reject                                                                     String?              @unique(map: "directus_operations_reject_unique") @db.Char(36)
+  flow                                                                       String               @db.Char(36)
+  date_created                                                               DateTime?            @default(now()) @db.Timestamp(0)
+  user_created                                                               String?              @db.Char(36)
+  directus_flows                                                             directus_flows       @relation(fields: [flow], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "directus_operations_flow_foreign")
+  directus_operations_directus_operations_rejectTodirectus_operations        directus_operations? @relation("directus_operations_rejectTodirectus_operations", fields: [reject], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "directus_operations_reject_foreign")
+  other_directus_operations_directus_operations_rejectTodirectus_operations  directus_operations? @relation("directus_operations_rejectTodirectus_operations")
+  directus_operations_directus_operations_resolveTodirectus_operations       directus_operations? @relation("directus_operations_resolveTodirectus_operations", fields: [resolve], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "directus_operations_resolve_foreign")
+  other_directus_operations_directus_operations_resolveTodirectus_operations directus_operations? @relation("directus_operations_resolveTodirectus_operations")
+  directus_users                                                             directus_users?      @relation(fields: [user_created], references: [id], onUpdate: NoAction, map: "directus_operations_user_created_foreign")
+
+  @@index([flow], map: "directus_operations_flow_foreign")
+  @@index([user_created], map: "directus_operations_user_created_foreign")
+}
+
+model directus_panels {
+  id                  String              @id @db.Char(36)
+  dashboard           String              @db.Char(36)
+  name                String?             @db.VarChar(255)
+  icon                String?             @db.VarChar(30)
+  color               String?             @db.VarChar(10)
+  show_header         Boolean             @default(false)
+  note                String?             @db.Text
+  type                String              @db.VarChar(255)
+  position_x          Int
+  position_y          Int
+  width               Int
+  height              Int
+  options             Json?
+  date_created        DateTime?           @default(now()) @db.Timestamp(0)
+  user_created        String?             @db.Char(36)
+  directus_dashboards directus_dashboards @relation(fields: [dashboard], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "directus_panels_dashboard_foreign")
+  directus_users      directus_users?     @relation(fields: [user_created], references: [id], onUpdate: NoAction, map: "directus_panels_user_created_foreign")
+
+  @@index([dashboard], map: "directus_panels_dashboard_foreign")
+  @@index([user_created], map: "directus_panels_user_created_foreign")
+}
+
+model directus_permissions {
+  id             Int             @id @default(autoincrement()) @db.UnsignedInt
+  role           String?         @db.Char(36)
+  collection     String          @db.VarChar(64)
+  action         String          @db.VarChar(10)
+  permissions    Json?
+  validation     Json?
+  presets        Json?
+  fields         String?         @db.Text
+  directus_roles directus_roles? @relation(fields: [role], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "directus_permissions_role_foreign")
+
+  @@index([collection], map: "directus_permissions_collection_foreign")
+  @@index([role], map: "directus_permissions_role_foreign")
+}
+
+model directus_presets {
+  id               Int             @id @default(autoincrement()) @db.UnsignedInt
+  bookmark         String?         @db.VarChar(255)
+  user             String?         @db.Char(36)
+  role             String?         @db.Char(36)
+  collection       String?         @db.VarChar(64)
+  search           String?         @db.VarChar(100)
+  layout           String?         @default("tabular") @db.VarChar(100)
+  layout_query     Json?
+  layout_options   Json?
+  refresh_interval Int?
+  filter           Json?
+  icon             String?         @default("bookmark") @db.VarChar(30)
+  color            String?         @db.VarChar(255)
+  directus_roles   directus_roles? @relation(fields: [role], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "directus_presets_role_foreign")
+  directus_users   directus_users? @relation(fields: [user], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "directus_presets_user_foreign")
+
+  @@index([collection], map: "directus_presets_collection_foreign")
+  @@index([role], map: "directus_presets_role_foreign")
+  @@index([user], map: "directus_presets_user_foreign")
+}
+
+model directus_relations {
+  id                      Int     @id @default(autoincrement()) @db.UnsignedInt
+  many_collection         String  @db.VarChar(64)
+  many_field              String  @db.VarChar(64)
+  one_collection          String? @db.VarChar(64)
+  one_field               String? @db.VarChar(64)
+  one_collection_field    String? @db.VarChar(64)
+  one_allowed_collections String? @db.Text
+  junction_field          String? @db.VarChar(64)
+  sort_field              String? @db.VarChar(64)
+  one_deselect_action     String  @default("nullify") @db.VarChar(255)
+
+  @@index([many_collection], map: "directus_relations_many_collection_foreign")
+  @@index([one_collection], map: "directus_relations_one_collection_foreign")
+}
+
+model directus_revisions {
+  id                       Int                  @id @default(autoincrement()) @db.UnsignedInt
+  activity                 Int                  @db.UnsignedInt
+  collection               String               @db.VarChar(64)
+  item                     String               @db.VarChar(255)
+  data                     Json?
+  delta                    Json?
+  parent                   Int?                 @db.UnsignedInt
+  directus_activity        directus_activity    @relation(fields: [activity], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "directus_revisions_activity_foreign")
+  directus_revisions       directus_revisions?  @relation("directus_revisionsTodirectus_revisions", fields: [parent], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "directus_revisions_parent_foreign")
+  other_directus_revisions directus_revisions[] @relation("directus_revisionsTodirectus_revisions")
+
+  @@index([activity], map: "directus_revisions_activity_foreign")
+  @@index([collection], map: "directus_revisions_collection_foreign")
+  @@index([parent], map: "directus_revisions_parent_foreign")
+}
+
+model directus_roles {
+  id                   String                 @id @db.Char(36)
+  name                 String                 @db.VarChar(100)
+  icon                 String                 @default("supervised_user_circle") @db.VarChar(30)
+  description          String?                @db.Text
+  ip_access            String?                @db.Text
+  enforce_tfa          Boolean                @default(false)
+  admin_access         Boolean                @default(false)
+  app_access           Boolean                @default(true)
+  directus_permissions directus_permissions[]
+  directus_presets     directus_presets[]
+  directus_shares      directus_shares[]
+  directus_users       directus_users[]
+}
+
+model directus_sessions {
+  token           String           @id @db.VarChar(64)
+  user            String?          @db.Char(36)
+  expires         DateTime         @db.Timestamp(0)
+  ip              String?          @db.VarChar(255)
+  user_agent      String?          @db.VarChar(255)
+  share           String?          @db.Char(36)
+  origin          String?          @db.VarChar(255)
+  directus_shares directus_shares? @relation(fields: [share], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "directus_sessions_share_foreign")
+  directus_users  directus_users?  @relation(fields: [user], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "directus_sessions_user_foreign")
+
+  @@index([share], map: "directus_sessions_share_foreign")
+  @@index([user], map: "directus_sessions_user_foreign")
+}
+
+model directus_settings {
+  id                                                                 Int               @id @default(autoincrement()) @db.UnsignedInt
+  project_name                                                       String            @default("Directus") @db.VarChar(100)
+  project_url                                                        String?           @db.VarChar(255)
+  project_color                                                      String?           @db.VarChar(50)
+  project_logo                                                       String?           @db.Char(36)
+  public_foreground                                                  String?           @db.Char(36)
+  public_background                                                  String?           @db.Char(36)
+  public_note                                                        String?           @db.Text
+  auth_login_attempts                                                Int?              @default(25) @db.UnsignedInt
+  auth_password_policy                                               String?           @db.VarChar(100)
+  storage_asset_transform                                            String?           @default("all") @db.VarChar(7)
+  storage_asset_presets                                              Json?
+  custom_css                                                         String?           @db.Text
+  storage_default_folder                                             String?           @db.Char(36)
+  basemaps                                                           Json?
+  mapbox_key                                                         String?           @db.VarChar(255)
+  module_bar                                                         Json?
+  project_descriptor                                                 String?           @db.VarChar(100)
+  default_language                                                   String            @default("en-US") @db.VarChar(255)
+  custom_aspect_ratios                                               Json?
+  directus_files_directus_settings_project_logoTodirectus_files      directus_files?   @relation("directus_settings_project_logoTodirectus_files", fields: [project_logo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "directus_settings_project_logo_foreign")
+  directus_files_directus_settings_public_backgroundTodirectus_files directus_files?   @relation("directus_settings_public_backgroundTodirectus_files", fields: [public_background], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "directus_settings_public_background_foreign")
+  directus_files_directus_settings_public_foregroundTodirectus_files directus_files?   @relation("directus_settings_public_foregroundTodirectus_files", fields: [public_foreground], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "directus_settings_public_foreground_foreign")
+  directus_folders                                                   directus_folders? @relation(fields: [storage_default_folder], references: [id], onUpdate: NoAction, map: "directus_settings_storage_default_folder_foreign")
+
+  @@index([project_logo], map: "directus_settings_project_logo_foreign")
+  @@index([public_background], map: "directus_settings_public_background_foreign")
+  @@index([public_foreground], map: "directus_settings_public_foreground_foreign")
+  @@index([storage_default_folder], map: "directus_settings_storage_default_folder_foreign")
+}
+
+model directus_shares {
+  id                   String                @id @db.Char(36)
+  name                 String?               @db.VarChar(255)
+  collection           String?               @db.VarChar(64)
+  item                 String?               @db.VarChar(255)
+  role                 String?               @db.Char(36)
+  password             String?               @db.VarChar(255)
+  user_created         String?               @db.Char(36)
+  date_created         DateTime?             @default(now()) @db.Timestamp(0)
+  date_start           DateTime?             @db.Timestamp(0)
+  date_end             DateTime?             @db.Timestamp(0)
+  times_used           Int?                  @default(0)
+  max_uses             Int?
+  directus_sessions    directus_sessions[]
+  directus_collections directus_collections? @relation(fields: [collection], references: [collection], onDelete: Cascade, onUpdate: NoAction, map: "directus_shares_collection_foreign")
+  directus_roles       directus_roles?       @relation(fields: [role], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "directus_shares_role_foreign")
+  directus_users       directus_users?       @relation(fields: [user_created], references: [id], onUpdate: NoAction, map: "directus_shares_user_created_foreign")
+
+  @@index([collection], map: "directus_shares_collection_foreign")
+  @@index([role], map: "directus_shares_role_foreign")
+  @@index([user_created], map: "directus_shares_user_created_foreign")
+}
+
+model directus_translations {
+  id       String @id @db.Char(36)
+  language String @db.VarChar(255)
+  key      String @db.VarChar(255)
+  value    String @db.Text
+}
+
+model directus_users {
+  id                                                                      String                   @id @db.Char(36)
+  first_name                                                              String?                  @db.VarChar(50)
+  last_name                                                               String?                  @db.VarChar(50)
+  email                                                                   String?                  @unique(map: "directus_users_email_unique") @db.VarChar(128)
+  password                                                                String?                  @db.VarChar(255)
+  location                                                                String?                  @db.VarChar(255)
+  title                                                                   String?                  @db.VarChar(50)
+  description                                                             String?                  @db.Text
+  tags                                                                    Json?
+  avatar                                                                  String?                  @db.Char(36)
+  language                                                                String?                  @db.VarChar(255)
+  theme                                                                   String?                  @default("auto") @db.VarChar(20)
+  tfa_secret                                                              String?                  @db.VarChar(255)
+  status                                                                  String                   @default("active") @db.VarChar(16)
+  role                                                                    String?                  @db.Char(36)
+  token                                                                   String?                  @unique(map: "directus_users_token_unique") @db.VarChar(255)
+  last_access                                                             DateTime?                @db.Timestamp(0)
+  last_page                                                               String?                  @db.VarChar(255)
+  provider                                                                String                   @default("default") @db.VarChar(128)
+  external_identifier                                                     String?                  @unique(map: "directus_users_external_identifier_unique") @db.VarChar(255)
+  auth_data                                                               Json?
+  email_notifications                                                     Boolean?                 @default(true)
+  directus_dashboards                                                     directus_dashboards[]
+  directus_files_directus_files_modified_byTodirectus_users               directus_files[]         @relation("directus_files_modified_byTodirectus_users")
+  directus_files_directus_files_uploaded_byTodirectus_users               directus_files[]         @relation("directus_files_uploaded_byTodirectus_users")
+  directus_flows                                                          directus_flows[]
+  directus_notifications_directus_notifications_recipientTodirectus_users directus_notifications[] @relation("directus_notifications_recipientTodirectus_users")
+  directus_notifications_directus_notifications_senderTodirectus_users    directus_notifications[] @relation("directus_notifications_senderTodirectus_users")
+  directus_operations                                                     directus_operations[]
+  directus_panels                                                         directus_panels[]
+  directus_presets                                                        directus_presets[]
+  directus_sessions                                                       directus_sessions[]
+  directus_shares                                                         directus_shares[]
+  directus_roles                                                          directus_roles?          @relation(fields: [role], references: [id], onUpdate: NoAction, map: "directus_users_role_foreign")
+
+  @@index([role], map: "directus_users_role_foreign")
+}
+
+model directus_webhooks {
+  id          Int     @id @default(autoincrement()) @db.UnsignedInt
+  name        String  @db.VarChar(255)
+  method      String  @default("POST") @db.VarChar(10)
+  url         String  @db.VarChar(255)
+  status      String  @default("active") @db.VarChar(10)
+  data        Boolean @default(true)
+  actions     String  @db.VarChar(100)
+  collections String  @db.VarChar(255)
+  headers     Json?
+}
+
+model refreshtoken {
   id     Int    @id @default(autoincrement())
-  token  String @unique @db.VarChar(500)
-  user   user   @relation(fields: [userId], references: [id])
-  userId Int    @unique @db.UnsignedInt
+  token  String @unique(map: "RefreshToken_token_key") @db.VarChar(500)
+  userId Int    @unique(map: "RefreshToken_userId_key") @db.UnsignedInt
+  user   user   @relation(fields: [userId], references: [id], map: "RefreshToken_userId_fkey")
 }
 
 enum concerned_user_status {
   experts
   impacted
-}
-
-enum decision_status {
-  in_progress
-  finished
 }

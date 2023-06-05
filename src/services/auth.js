@@ -68,19 +68,19 @@ const verifyPassword = async (req, res) => {
       ); // expires in 5 minutes
 
       // Find existing refresh token for user
-      const existingRefreshToken = await prisma.refreshToken.findUnique({
+      const existingRefreshToken = await prisma.refreshtoken.findUnique({
         where: { userId: user.id },
       });
 
       // Delete existing refresh token if it exists
       if (existingRefreshToken) {
-        await prisma.refreshToken.delete({
+        await prisma.refreshtoken.delete({
           where: { id: existingRefreshToken.id },
         });
       }
 
       // Store the refresh token in the database
-      await prisma.refreshToken.create({
+      await prisma.refreshtoken.create({
         data: {
           token: refreshToken,
           userId: user.id,
@@ -120,11 +120,11 @@ const refreshTokens = async (req, res) => {
       throw new Error("User not found");
     }
 
-    await prisma.refreshToken.findUnique({
+    await prisma.refreshtoken.findUnique({
       where: { token: refreshToken },
     });
 
-    const storedRefreshToken = await prisma.refreshToken.findUnique({
+    const storedRefreshToken = await prisma.refreshtoken.findUnique({
       where: { token: refreshToken },
     });
     if (!storedRefreshToken) {
@@ -169,10 +169,10 @@ const refreshTokens = async (req, res) => {
 
     // Use Prisma transaction to delete old and create new refresh token
     await prisma.$transaction([
-      prisma.refreshToken.delete({
+      prisma.refreshtoken.delete({
         where: { token: refreshToken },
       }),
-      prisma.refreshToken.create({
+      prisma.refreshtoken.create({
         data: {
           token: newRefreshToken,
           userId: user.id,
@@ -197,7 +197,7 @@ const logout = async (req, res) => {
   const { user } = req.body;
   try {
     // Delete refresh token for user
-    await prisma.refreshToken.delete({
+    await prisma.refreshtoken.delete({
       where: { userId: user.id },
     });
 

@@ -6,7 +6,7 @@ const users = [
     role: "visitor",
     email: "remi@mail.com",
     hashed_password:
-      "$argon2id$v=19$m=65536,t=5,p=1$Yx+5bYJ3zsf1RHN92/SlxQ$VmX8cR64b7G3q+AuxSmcDJplhwMiz+QpeKdpN6GGEwI",
+      "$argon2id$v=19$m=65536,t=5,p=1$mer+c2QxR97hIvipGifpgQ$KO4UcEOnzLwqZLU2q/uWbwnlB76E/TMTdiZtGgxSJds",
   },
   {
     firstname: "Robin",
@@ -15,7 +15,7 @@ const users = [
     role: "employee",
     email: "robin@mail.com",
     hashed_password:
-      "$argon2id$v=19$m=65536,t=5,p=1$Yx+5bYJ3zsf1RHN92/SlxQ$VmX8cR64b7G3q+AuxSmcDJplhwMiz+QpeKdpN6GGEwI",
+      "$argon2id$v=19$m=65536,t=5,p=1$mer+c2QxR97hIvipGifpgQ$KO4UcEOnzLwqZLU2q/uWbwnlB76E/TMTdiZtGgxSJds",
   },
   {
     firstname: "Jessy",
@@ -24,7 +24,16 @@ const users = [
     role: "admin",
     email: "jessy@mail.com",
     hashed_password:
-      "$argon2id$v=19$m=65536,t=5,p=1$Yx+5bYJ3zsf1RHN92/SlxQ$VmX8cR64b7G3q+AuxSmcDJplhwMiz+QpeKdpN6GGEwI",
+      "$argon2id$v=19$m=65536,t=5,p=1$mer+c2QxR97hIvipGifpgQ$KO4UcEOnzLwqZLU2q/uWbwnlB76E/TMTdiZtGgxSJds",
+  },
+  {
+    firstname: "Mounir",
+    lastname: "M.",
+    image_url: "admin.jpg",
+    role: "admin",
+    email: "mounir@mail.com",
+    hashed_password:
+      "$argon2id$v=19$m=65536,t=5,p=1$mer+c2QxR97hIvipGifpgQ$KO4UcEOnzLwqZLU2q/uWbwnlB76E/TMTdiZtGgxSJds",
   },
 ];
 

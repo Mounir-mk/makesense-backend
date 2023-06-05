@@ -2,6 +2,8 @@ const express = require("express");
 const path = require("path");
 const cors = require("cors");
 require("dotenv").config();
+const schedule = require("node-schedule");
+const { updateDecisions } = require("./services/cron");
 
 const router = express.Router();
 
@@ -36,13 +38,6 @@ router.use(cors({ origin: "*" }));
 
 // prefix all routes with /api
 router.use("/api", router);
-
-router.get("/", (req, res) => {
-  res.send({
-    message: "Welcome to the API",
-    environment: process.env.NODE_ENV,
-  });
-});
 
 const decisionControllers = require("./controllers/decisionControllers");
 const userControllers = require("./controllers/userControllers");
@@ -90,5 +85,16 @@ router.get("/users", userControllers.browse);
 router.get("/users/:id", userControllers.read);
 router.put("/users/:id", hashPassword, userControllers.edit);
 router.delete("/users/:id", userControllers.destroy);
+
+// route for prod
+router.get("/", (req, res) => {
+  res.send({
+    message: "Welcome to the API",
+    environment: process.env.NODE_ENV,
+  });
+});
+
+// Cron job
+schedule.scheduleJob("0 */12 * * *", updateDecisions);
 
 module.exports = router;
