@@ -37,13 +37,6 @@ router.use(cors({ origin: "*" }));
 // prefix all routes with /api
 router.use("/api", router);
 
-router.get("/", (req, res) => {
-  res.send({
-    message: "Welcome to the API",
-    environment: process.env.NODE_ENV,
-  });
-});
-
 const decisionControllers = require("./controllers/decisionControllers");
 const userControllers = require("./controllers/userControllers");
 const {
@@ -90,5 +83,12 @@ router.get("/users", userControllers.browse);
 router.get("/users/:id", userControllers.read);
 router.put("/users/:id", hashPassword, userControllers.edit);
 router.delete("/users/:id", userControllers.destroy);
+
+router.get("/", (req, res) => {
+  res.send({
+    message: "Welcome to the API",
+    environment: process.env.NODE_ENV,
+  });
+});
 
 module.exports = router;
