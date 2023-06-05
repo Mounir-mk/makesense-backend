@@ -29,7 +29,7 @@ const users = [
   {
     firstname: "Mounir",
     lastname: "M.",
-    image_url: "admin.jpg",
+    image_url: "admin2.jpg",
     role: "admin",
     email: "mounir@mail.com",
     hashed_password:
