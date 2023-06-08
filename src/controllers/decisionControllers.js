@@ -39,6 +39,7 @@ const browse = async (req, res) => {
       decisionCopy.firstname = decisionCopy.user.firstname;
       decisionCopy.lastname = decisionCopy.user.lastname;
       decisionCopy.image_url = decisionCopy.user.image_url;
+      decisionCopy.user_id = decisionCopy.user.id;
       delete decisionCopy.user;
       return decisionCopy;
     });

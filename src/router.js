@@ -44,7 +44,6 @@ const {
   verifyPassword,
   refreshTokens,
   verifyToken,
-  logout,
 } = require("./services/auth");
 
 router.post(
@@ -52,7 +51,7 @@ router.post(
   userControllers.getUserByEmailWithPasswordAndPassToNext,
   verifyPassword
 );
-router.post("/users/logout", logout);
+
 router.post(
   "/users",
   userControllers.uploadFile,
